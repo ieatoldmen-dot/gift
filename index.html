@@ -8,90 +8,86 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
     
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+    body, html { 
+        margin: 0; 
+        padding: 0; 
+        width: 100%; 
+        height: 100%; 
+        overflow-x: hidden; /* Убираем горизонтальный скролл */
+        background: #000; 
+    }
         
-        .workspace {
-            position: absolute;
-            width: 1920px;
-            height: 1200px;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            background: url('bg.jpg') no-repeat center center;
-            background-size: cover;
-        }
+    .workspace {
+        position: absolute;
+        width: 1920px;
+        height: 1200px;
+        left: 50%;
+        top: 0; /* Прижимаем макет к самому верху */
+        transform-origin: top center; /* Масштабируем строго от верхней точки */
+        transform: translateX(-50%);
+        /* Фон на всю ширину, фиксирован сверху */
+        background: url('bg.jpg') no-repeat top center;
+        background-size: 100% auto; 
+    }
 
-        .ticket-wrapper {
-            position: absolute;
-            width: 1423px;
-            height: 500px;
-            top: 535px;
-            left: 249px;
-            background: url('ticket.png') no-repeat;
-            background-size: contain;
-        }
+    .ticket-wrapper {
+        position: absolute;
+        width: 1423px;
+        height: 500px;
+        top: 475px; /* Новая координата по твоему запросу */
+        left: 249px;
+        background: url('ticket.png') no-repeat;
+        background-size: contain;
+    }
 
-        /* Контейнер для секретных данных */
-        .secret-container {
-            position: absolute;
-            top: 156px;
-            left: 138px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 32px;
-            z-index: 1; /* Под стирашкой */
-        }
+    /* Контейнер для секретных данных */
+    .secret-container {
+        position: absolute;
+        top: 156px;
+        left: 138px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 32px;
+        z-index: 1;
+    }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 0px;
-        }
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0px;
+    }
 
-        /* Стили заголовков (Логин, Пароль) */
-        .label {
-            color: rgba(255, 255, 255, 0.40);
-            font-family: 'Inter', sans-serif;
-            font-size: 28px;
-            font-style: normal;
-            font-weight: 500;
-            line-height: normal;
-            letter-spacing: -2.24px;
-            text-transform: lowercase;
-            /* Figma properties */
-            leading-trim: both;
-            text-edge: cap;
-        }
+    .label {
+        color: rgba(255, 255, 255, 0.40);
+        font-family: 'Inter', sans-serif;
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: -2.24px;
+        text-transform: lowercase;
+    }
 
-        /* Стили самих значений */
-        .value {
-            color: #FFF;
-            font-family: 'Inter', sans-serif;
-            font-size: 36px;
-            font-style: normal;
-            font-weight: 500;
-            line-height: normal;
-            letter-spacing: -2.88px;
-            /* Figma properties */
-            leading-trim: both;
-            text-edge: cap;
-        }
+    .value {
+        color: #FFF;
+        font-family: 'Inter', sans-serif;
+        font-size: 36px;
+        font-weight: 500;
+        letter-spacing: -2.88px;
+    }
 
-        #scratch-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 500px;
-            height: 500px;
-            /* Border-radius здесь больше не обязателен, так как он есть у самой картинки, но оставим на всякий случай */
-            border-radius: 48px; 
-            cursor: crosshair;
-            touch-action: none;
-            z-index: 2; /* Поверх текста */
-        }
+    #scratch-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 500px;
+        height: 500px;
+        border-radius: 48px; 
+        cursor: crosshair;
+        touch-action: none;
+        z-index: 2;
+    }
     </style>
 </head>
 <body>
@@ -120,51 +116,5 @@
     canvas.width = 500;
     canvas.height = 500;
 
-    // --- НОВАЯ ЛОГИКА ЗАГРУЗКИ КАРТИНКИ ---
-    
-    // Создаем новый объект изображения
     const coverImg = new Image();
-    // Указываем путь к файлу. Важно: он должен лежать на GitHub рядом с index.html
-    coverImg.src = 'scratch-cover.png';
-
-    // Ждем, пока картинка загрузится, и только потом рисуем её на канвасе
-    coverImg.onload = function() {
-        // Рисуем картинку, растягивая её на весь размер канваса (500x500)
-        ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
-    };
-
-    // ---------------------------------------
-
-    let isDrawing = false;
-
-    function scratch(e) {
-        if (!isDrawing) return;
-        const rect = canvas.getBoundingClientRect();
-        const scale = rect.width / canvas.width;
-        const x = ((e.clientX || e.touches[0].clientX) - rect.left) / scale;
-        const y = ((e.clientY || e.touches[0].clientY) - rect.top) / scale;
-        
-        // Режим "ластика" - стираем то, что нарисовано
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath();
-        ctx.arc(x, y, 40, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    canvas.addEventListener('mousedown', () => isDrawing = true);
-    canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
-    window.addEventListener('mouseup', () => isDrawing = false);
-    window.addEventListener('touchend', () => isDrawing = false);
-    canvas.addEventListener('mousemove', scratch);
-    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); }, { passive: false });
-
-    function resizer() {
-        const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1200);
-        document.querySelector('.workspace').style.transform = `translate(-50%, -50%) scale(${scale})`;
-    }
-    window.addEventListener('resize', resizer);
-    resizer();
-</script>
-</body>
-</html>
-
+    coverImg.src
