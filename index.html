@@ -8,31 +8,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
     
     <style>
-    /* Убираем все отступы и скролл */
+    /* Базовые настройки: убираем всё лишнее */
     * { box-sizing: border-box; }
+    
     body, html { 
         margin: 0; 
         padding: 0; 
         width: 100%; 
         height: 100%; 
-        overflow: hidden; /* Скролл запрещен */
+        overflow: hidden; /* Запрет любого скролла */
         background: #000; 
     }
-        
-    /* Контейнер на весь экран, который не двигается */
+
+    /* Главный контейнер на весь экран */
     .viewport {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        overflow: hidden;
-        /* Фон тянется на фулл, прижат к верху, лишнее снизу обрезается */
         background: url('bg.jpg') no-repeat top center;
-        background-size: cover; 
+        background-size: cover; /* Заполняет экран, обрезая лишнее снизу */
+        overflow: hidden;
     }
 
-    /* Наша рабочая область 1920x1200, которую мы будем уменьшать под экран */
+    /* Рабочая область 1920x1200 */
     .workspace {
         position: absolute;
         width: 1920px;
@@ -43,24 +43,26 @@
         transform: translateX(-50%);
     }
 
+    /* Билет */
     .ticket-wrapper {
         position: absolute;
         width: 1423px;
         height: 500px;
-        top: 475px; /* Твоя новая координата */
+        top: 475px; /* Новая координата */
         left: 249px;
         background: url('ticket.png') no-repeat;
         background-size: contain;
     }
 
+    /* Текст под стирашкой */
     .secret-container {
         position: absolute;
-        top: 156px;
-        left: 138px;
+        top: 172px; /* По ТЗ: 172px */
+        left: 138px; /* По ТЗ: 138px */
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 32px;
+        gap: 36px; /* По ТЗ: 36px */
         z-index: 1;
     }
 
@@ -69,7 +71,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 0px;
+        gap: 14px; /* По ТЗ: 14px */
     }
 
     .label {
@@ -89,6 +91,7 @@
         letter-spacing: -2.88px;
     }
 
+    /* Слой для стирания */
     #scratch-layer {
         position: absolute;
         top: 0;
@@ -117,7 +120,6 @@
                         <div class="value">1234parol</div>
                     </div>
                 </div>
-
                 <canvas id="scratch-layer"></canvas>
             </div>
         </div>
@@ -126,13 +128,11 @@
 <script>
     const canvas = document.getElementById('scratch-layer');
     const ctx = canvas.getContext('2d');
-
     canvas.width = 500;
     canvas.height = 500;
 
     const coverImg = new Image();
     coverImg.src = 'scratch-cover.png';
-
     coverImg.onload = function() {
         ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
     };
@@ -142,7 +142,7 @@
     function scratch(e) {
         if (!isDrawing) return;
         const rect = canvas.getBoundingClientRect();
-        // Масштаб считается динамически для точности стирания
+        // Рассчитываем масштаб динамически, чтобы стирание было точным
         const scale = rect.width / canvas.width;
         
         const x = ((e.clientX || (e.touches && e.touches[0].clientX)) - rect.left) / scale;
@@ -154,4 +154,23 @@
         ctx.fill();
     }
 
-    canvas.addEventListener('mousedown', () => isDrawing =
+    canvas.addEventListener('mousedown', () => isDrawing = true);
+    canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
+    window.addEventListener('mouseup', () => isDrawing = false);
+    window.addEventListener('touchend', () => isDrawing = false);
+    canvas.addEventListener('mousemove', scratch);
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); }, { passive: false });
+
+    function resizer() {
+        // Масштабируем макет по ширине экрана
+        const scale = window.innerWidth / 1920;
+        const workspace = document.querySelector('.workspace');
+        workspace.style.transform = `translateX(-50%) scale(${scale})`;
+    }
+
+    window.addEventListener('resize', resizer);
+    window.addEventListener('load', resizer);
+    resizer();
+</script>
+</body>
+</html>
