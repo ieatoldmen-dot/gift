@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
     
     <style>
-    /* Базовые настройки: убираем всё лишнее */
     * { box-sizing: border-box; }
     
     body, html { 
@@ -16,11 +15,10 @@
         padding: 0; 
         width: 100%; 
         height: 100%; 
-        overflow: hidden; /* Запрет любого скролла */
+        overflow: hidden; 
         background: #000; 
     }
 
-    /* Главный контейнер на весь экран */
     .viewport {
         position: fixed;
         top: 0;
@@ -28,11 +26,10 @@
         width: 100vw;
         height: 100vh;
         background: url('bg.jpg') no-repeat top center;
-        background-size: cover; /* Заполняет экран, обрезая лишнее снизу */
+        background-size: cover;
         overflow: hidden;
     }
 
-    /* Рабочая область 1920x1200 */
     .workspace {
         position: absolute;
         width: 1920px;
@@ -43,27 +40,35 @@
         transform: translateX(-50%);
     }
 
-    /* Билет */
     .ticket-wrapper {
         position: absolute;
         width: 1423px;
         height: 500px;
-        top: 475px; /* Новая координата */
+        top: 475px; 
         left: 249px;
         background: url('ticket.png') no-repeat;
         background-size: contain;
     }
 
-    /* Текст под стирашкой */
-    .secret-container {
+    /* НОВЫЙ КОНТЕЙНЕР-ОБЕРТКА: 500x500 */
+    .secret-wrapper {
         position: absolute;
-        top: 172px; /* По ТЗ: 172px */
-        left: 138px; /* По ТЗ: 138px */
+        top: 0;
+        left: 0;
+        width: 500px;
+        height: 500px;
+        display: flex;         /* Включаем флексы */
+        justify-content: center; /* Центрируем горизонтально */
+        align-items: center;     /* Центрируем вертикально */
+        z-index: 1;            /* Под стирашкой */
+    }
+
+    /* Сам контейнер с данными (теперь без фиксированных координат) */
+    .secret-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 36px; /* По ТЗ: 36px */
-        z-index: 1;
+        gap: 36px;
     }
 
     .input-group {
@@ -71,7 +76,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 14px; /* По ТЗ: 14px */
+        gap: 14px;
     }
 
     .label {
@@ -91,7 +96,6 @@
         letter-spacing: -2.88px;
     }
 
-    /* Слой для стирания */
     #scratch-layer {
         position: absolute;
         top: 0;
@@ -110,16 +114,20 @@
     <div class="viewport">
         <div class="workspace">
             <div class="ticket-wrapper">
-                <div class="secret-container">
-                    <div class="input-group">
-                        <div class="label">логин</div>
-                        <div class="value">sososo</div>
-                    </div>
-                    <div class="input-group">
-                        <div class="label">пароль</div>
-                        <div class="value">1234parol</div>
+                
+                <div class="secret-wrapper">
+                    <div class="secret-container">
+                        <div class="input-group">
+                            <div class="label">логин</div>
+                            <div class="value">sososo</div>
+                        </div>
+                        <div class="input-group">
+                            <div class="label">пароль</div>
+                            <div class="value">1234parol</div>
+                        </div>
                     </div>
                 </div>
+
                 <canvas id="scratch-layer"></canvas>
             </div>
         </div>
@@ -142,7 +150,6 @@
     function scratch(e) {
         if (!isDrawing) return;
         const rect = canvas.getBoundingClientRect();
-        // Рассчитываем масштаб динамически, чтобы стирание было точным
         const scale = rect.width / canvas.width;
         
         const x = ((e.clientX || (e.touches && e.touches[0].clientX)) - rect.left) / scale;
@@ -162,7 +169,6 @@
     canvas.addEventListener('touchmove', (e) => { e.preventDefault(); scratch(e); }, { passive: false });
 
     function resizer() {
-        // Масштабируем макет по ширине экрана
         const scale = window.innerWidth / 1920;
         const workspace = document.querySelector('.workspace');
         workspace.style.transform = `translateX(-50%) scale(${scale})`;
