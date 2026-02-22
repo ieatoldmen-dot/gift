@@ -8,39 +8,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
     
     <style>
+    /* Убираем все отступы и скролл */
+    * { box-sizing: border-box; }
     body, html { 
         margin: 0; 
         padding: 0; 
         width: 100%; 
         height: 100%; 
-        overflow-x: hidden; /* Убираем горизонтальный скролл */
+        overflow: hidden; /* Скролл запрещен */
         background: #000; 
     }
         
+    /* Контейнер на весь экран, который не двигается */
+    .viewport {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        /* Фон тянется на фулл, прижат к верху, лишнее снизу обрезается */
+        background: url('bg.jpg') no-repeat top center;
+        background-size: cover; 
+    }
+
+    /* Наша рабочая область 1920x1200, которую мы будем уменьшать под экран */
     .workspace {
         position: absolute;
         width: 1920px;
         height: 1200px;
         left: 50%;
-        top: 0; /* Прижимаем макет к самому верху */
-        transform-origin: top center; /* Масштабируем строго от верхней точки */
+        top: 0;
+        transform-origin: top center;
         transform: translateX(-50%);
-        /* Фон на всю ширину, фиксирован сверху */
-        background: url('bg.jpg') no-repeat top center;
-        background-size: 100% auto; 
     }
 
     .ticket-wrapper {
         position: absolute;
         width: 1423px;
         height: 500px;
-        top: 475px; /* Новая координата по твоему запросу */
+        top: 475px; /* Твоя новая координата */
         left: 249px;
         background: url('ticket.png') no-repeat;
         background-size: contain;
     }
 
-    /* Контейнер для секретных данных */
     .secret-container {
         position: absolute;
         top: 156px;
@@ -92,20 +104,22 @@
 </head>
 <body>
 
-    <div class="workspace">
-        <div class="ticket-wrapper">
-            <div class="secret-container">
-                <div class="input-group">
-                    <div class="label">логин</div>
-                    <div class="value">sososo</div>
+    <div class="viewport">
+        <div class="workspace">
+            <div class="ticket-wrapper">
+                <div class="secret-container">
+                    <div class="input-group">
+                        <div class="label">логин</div>
+                        <div class="value">sososo</div>
+                    </div>
+                    <div class="input-group">
+                        <div class="label">пароль</div>
+                        <div class="value">1234parol</div>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <div class="label">пароль</div>
-                    <div class="value">1234parol</div>
-                </div>
-            </div>
 
-            <canvas id="scratch-layer"></canvas>
+                <canvas id="scratch-layer"></canvas>
+            </div>
         </div>
     </div>
 
@@ -117,4 +131,27 @@
     canvas.height = 500;
 
     const coverImg = new Image();
-    coverImg.src
+    coverImg.src = 'scratch-cover.png';
+
+    coverImg.onload = function() {
+        ctx.drawImage(coverImg, 0, 0, canvas.width, canvas.height);
+    };
+
+    let isDrawing = false;
+
+    function scratch(e) {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        // Масштаб считается динамически для точности стирания
+        const scale = rect.width / canvas.width;
+        
+        const x = ((e.clientX || (e.touches && e.touches[0].clientX)) - rect.left) / scale;
+        const y = ((e.clientY || (e.touches && e.touches[0].clientY)) - rect.top) / scale;
+        
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 40, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    canvas.addEventListener('mousedown', () => isDrawing =
